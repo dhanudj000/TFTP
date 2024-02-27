@@ -1,3 +1,8 @@
+/*
+NAME		: KONIREDDY DHANUNJAYA REDDY
+DATE		: 27/2/2024
+DESCRIPTION	: THIS FILE IS USED TO CREATE DATA PACKETS AND PRINT ERROR AND DATA IN DIFFERENT COLOURS
+*/
 #include <stdio.h>
 #include <stdio_ext.h>
 #include <string.h>
@@ -11,7 +16,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/select.h>
-
+//INCLUDING REQUIRED HEADER FILES
 
 #define RRQ	1
 #define WRQ	2
@@ -44,12 +49,18 @@
 
 #define SET_COL(a) printf(a)
 
-void print(int colour , char *line);
+
 
 #ifndef MAC
 #define MAC	1
+void print(int colour , char *line);
+//FUNCTION TO PRINT TECT IN COLOUR
 void create_pack(int opcode,char *file,int block,void* buff,int len);
+//FUNCTION TO CREATE A PACKET
 int init_con(int s_fd , void *buff , struct sockaddr_in *addr , char* ip , fd_set* set , struct timeval* t);
+//FUNCTION TO INITIATE A CONNECTION
 void read_cmd(char *cmd);
+//FUNCTION TO READ COMMAND 
 void print_error(void *buff);
+//FUNCTION TO PRINT ERROR FRAME
 #endif
