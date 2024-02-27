@@ -1,5 +1,10 @@
+/*
+NAME		: KONIREDDY DHANUNJAYA REDDY
+DATE		: 27/2/2024
+DESCRIPTION	: THIS FILE IS USED TO CREATE A CLIENT
+*/
 #include "tftp.h"
-
+//SETTING PORT NUMBER
 #define PORT	 5000
 #define MAX_BUFF 512
 int main()
@@ -14,19 +19,23 @@ int main()
 	sockfd = socket(AF_INET , SOCK_DGRAM , 0);
 	struct timeval t;
 	fd_set set;
+	//INITIALIZING AND ASSIGNING ALL REQUIRED MEMBERS
 	while(1)
 	{
+		//INITIALIZING THE CON NECTION
 		if(con_flag)
 		{
 			print(GREEN , "Connect to a server : connect <ip_address>\n");
 			read_cmd(cmd);
 			if(!strcmp(strtok(cmd , " ") , "connect"))
 			{
+				//CHECKING THE IP ADDRES  IF IT IS CONNECTABLE
 connect:			if(init_con(sockfd , send_buff , &serv_addr , strtok(NULL , " ") , &set , &t))
 				{
 					print(GREEN , "Connection success!\n");
 					con_flag = 0;
 				}
+				//IF NOT PRINTING THE ERROR
 				else
 				{
 					print(YELLOW , "Connection not established. Try again !!!!\n");
@@ -40,20 +49,28 @@ connect:			if(init_con(sockfd , send_buff , &serv_addr , strtok(NULL , " ") , &s
 		}
 		else
 		{
+			//READING CMD FROM USER
 			read_cmd(cmd);
+			//PARSING THE COMMAND FIRST
 			ptr = strtok(cmd , " ");
+			//CHECKING THE COMMAND
 			if(!strcmp(ptr , "get"))
 			{
+				//GETTING THE SECONG ARGUMENT FROM THE CMD
 				ptr = strtok(NULL , " ");
+				//CREATING A RRQ REQUEST BASED ON GIVEN FILE NAME
 				create_pack(RRQ ,ptr , 0 , send_buff , 0);
 				//printf("socket - %d\n",sockfd);
+				//SENDING A RRQ REQUEST
 				sendto(sockfd , send_buff , 512 , 0 , (struct sockaddr*)&serv_addr , ser_len);
 				//perror("sendto";
 				print(BLUE , "Sending RRQ frame...\n");
+				//RECIEVING THE DATA FROM THE SERVER
 				while(recvfrom(sockfd , recv_buff ,MAX_BUFF , 0, NULL , NULL))
 				{
 					switch(*(short*)recv_buff)
 					{
+						//IF THE RECIEVED FRAME IS DATA FRAME THEN WRITING THE DATA INTO OPENED FILE
 						case DATA:
 							data_len = *(short*)(recv_buff+4);
 							if(*(short*)(recv_buff + 2) == 1)
@@ -66,11 +83,13 @@ connect:			if(init_con(sockfd , send_buff , &serv_addr , strtok(NULL , " ") , &s
 							sendto(sockfd , send_buff , MAX_BUFF , 0 ,(struct sockaddr*)&serv_addr , ser_len);
 							print(MAGENTA , "Acknowledgement sent for block : "); printf("%d\n",*(short*)(recv_buff+2));
 							break;
+						//IF THE ERROR IS RECIEVED , JUST PRINTING THE ERROR AND CONTINUING
 						case ERR :
 							data_len = 0;
 							print_error(recv_buff);
 							break;
 					}
+					//CHECKING IF THE DATA FRAME IS LAST FRAME FOR THE FILE
 					if(data_len == 0)
 					{
 						print(GREEN , "Transfer Success!!!!!");
@@ -81,20 +100,25 @@ connect:			if(init_con(sockfd , send_buff , &serv_addr , strtok(NULL , " ") , &s
 						break;
 					}
 				}
-				file_fd = -1;
+				//ASSIGNING A VALUE BEFORE ASSINGING A FD OF OPENED FILE SUCH THAT IT WILL BE KNOWN TO CLOSE OR NOT
+				file_fd = -1;		
 			}
 			else if(!strcmp(ptr , "put"))
 			{
+				//PARSING THE COMMAND TO GET 2ND ARG
 				ptr = strtok(NULL , " ");
 				file_fd = open(ptr , O_RDONLY);
+				//OPENING THE FILE NAD CHECKING IF IT'S OPEN OR NOT
 				if(file_fd == -1)
 				{
 					print(YELLOW , "File not present.\n");
 					continue;
 				}
+				//CREATONG A WRQ REQUEST
 				create_pack(WRQ , ptr , 0 , send_buff , 0);
 				sendto(sockfd , send_buff , 512 , 0 , (struct sockaddr*)&serv_addr , ser_len);
 				print(BLUE , "Sending WRQ...\n");
+				//RECIEVING THE ACKNOWLEDGEMNET AND CHECKING IF FILE IS OPENED OR NOT IN SERVER
 				recvfrom(sockfd , recv_buff , 512 , 0, NULL , NULL);
 				switch(*(short*)recv_buff)
 				{
@@ -107,6 +131,7 @@ connect:			if(init_con(sockfd , send_buff , &serv_addr , strtok(NULL , " ") , &s
 						print_error(recv_buff);
 					default :continue;
 				}
+				//SENDING DATA FRAMES
 				while(n = read(file_fd , send_buff+6 , 506))
                                 {
                                         block+=1;
@@ -165,6 +190,7 @@ retransmit:                             sendto(sockfd , send_buff , MAX_BUFF , 0
 			}
 			else
 			{
+				// IF CMD ENTER IS WRONG PRINTING SUGGESTION
 				print(CYAN , "Invalid Cmd -\nEnter 'help' to see commands.\n");
 			}
 		}
